@@ -15,7 +15,7 @@ Jump Man is a Dino-Chrome look alike game written in c++ using Platform.io for a
 
 ## Next-Steps
 
-- [ ] Bluetooth and/or Wireless implementation, for controlling, with Pixel Board React Native App 
+- [ ] Bluetooth and/or Wireless implementation, for controlling, with Pixel Frame React Native App 
 
 
 
