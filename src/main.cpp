@@ -45,8 +45,8 @@ Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(mW, mH, PIN,
   NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG,
   NEO_GRB            + NEO_KHZ800);
 
-// Player class
-class Player {
+// Pixel class
+class Pixel {
   private:
     int color;
 
@@ -90,8 +90,8 @@ class Background {
 
 };
 
-Player player1;
-Player pebble1;
+Pixel player1;
+Pixel pebble1;
 Background bg;
 
 void setup() {
