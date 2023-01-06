@@ -9,8 +9,8 @@
 #define mH      16              // matrix height
 #define NUMPIXELS mW*mH         // matrix length
 #define BRIGHTNESS 32           // max 255, 32 is a good default and more current safe
-#define gravity .2              // gravity applied to fall effect
-const int REFRESH = 63;         // refresh rate
+#define gravity 1              // gravity applied to fall effect
+const int REFRESH = 65;         // refresh rate
 
 
 // color pallet
@@ -34,7 +34,7 @@ const int REFRESH = 63;         // refresh rate
 #define GreenYellow     0xAFE5      /* 173, 255,  47 */
 
 // variables that will change
-bool jumpLastState,crowLastState,gameOver,launch,jumpSide;
+bool jumpLastState,gameOver,launch,jumpSide;
 int pebbleX,pebbleY,pebbleDX,pebbleDY,lifeBar,jumpCount;
 unsigned long previousTimer = 0;
 
@@ -47,8 +47,12 @@ Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(mW, mH, PIN,
 
 // player class
 class Player {
+  private:
+    int color;
+
   public:
-    int pX, pY, velocity=1, color;
+    int pX, pY;
+    float velocity=.5;
 
     void set_values (int x, int y, int col)
       { pX=x; pY=y; color=col; }
@@ -60,7 +64,7 @@ class Player {
     void update () {
       this->draw();
       this->pY += this->velocity;
-      if (this->pY + 1 + this->velocity < mH-3) this->velocity += gravity;
+      if (this->pY + 2 + this->velocity < mH-3) this->velocity += gravity;
       else this->velocity = 0;
     };
 
@@ -76,39 +80,53 @@ void setup() {
   delay(1500); 
 
   matrix.begin();
-  matrix.setBrightness(40);
-  player1.set_values(1,0,Orange);
+  matrix.setBrightness(BRIGHTNESS);
+  player1.set_values(2,7,Orange);
   pebble1.set_values(15,0,Black);
   previousTimer = millis();
+  jumpCount = 4;
+  lifeBar = 8;
 }
 
 void Draw() {
   matrix.fillScreen(Cyan);
   matrix.fillRect(0,mH-3,16,3,Maroon);
   matrix.fillRect(0,mH-4,16,1,DarkGreen);
+  matrix.fillRect(4,0,lifeBar,1,GreenYellow);
   player1.update();
   pebble1.update();
   matrix.show();
 }
 
 void Input() {
-
+  if (jumpCount > 0){
+    if (pebble1.pX == 6)
+    {
+      player1.velocity = -2;
+      jumpCount--;
+    }
+  }
 }
 
 void Logic() {
   if(pebbleX < 0) pebbleX = mW;
   pebble1.set_values(pebbleX,mH-5,Black);
   pebbleX--;
+  if (player1.pX == pebble1.pX && player1.pY == pebble1.pY){
+  lifeBar--;
+  }
+  if (lifeBar < 0) gameOver = true;
 }
 
 void loop() {
-unsigned long currentTimer = millis();
-  if (currentTimer - previousTimer >= REFRESH)
-  {
-    Draw();
-    Input();
-    Logic();
-    previousTimer = currentTimer;
+while (!gameOver) {
+  unsigned long currentTimer = millis();
+    if (currentTimer - previousTimer >= REFRESH)
+    {
+      Draw();
+      Input();
+      Logic();
+      previousTimer = currentTimer;
+    }
   }
-
 }
