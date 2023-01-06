@@ -2,7 +2,9 @@
 
 Jump Man is a Dino-Chrome look alike game written in c++ using Platform.io for a 16x16 WS2812b ARGB led matrix using an ESP-32 microcontroller.
 <br>
-![PixelPebble](https://i.imgur.com/QHOrKsR.mp4)
+<p align="center">
+  <img src="https://media.giphy.com/media/oouI92O4U0O1tsQ9Mb/giphy.gif" width="250" height="250">
+</p>
 
 ## Progress:
 
