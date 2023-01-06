@@ -8,8 +8,8 @@
 #define mW      16              // matrix width
 #define mH      16              // matrix height
 #define NUMPIXELS mW*mH         // matrix length
-#define BRIGHTNESS 32           // max 255, 32 is a good default and more current safe
-#define gravity 1              // gravity applied to fall effect
+#define BRIGHTNESS 40           // max 255, 32 is a good default and more current safe
+#define gravity 1               // gravity applied to fall effect
 const int REFRESH = 65;         // refresh rate
 
 
@@ -45,7 +45,7 @@ Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(mW, mH, PIN,
   NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG,
   NEO_GRB            + NEO_KHZ800);
 
-// player class
+// Player class
 class Player {
   private:
     int color;
@@ -64,14 +64,35 @@ class Player {
     void update () {
       this->draw();
       this->pY += this->velocity;
-      if (this->pY + 2 + this->velocity < mH-3) this->velocity += gravity;
+      if (this->pY+ 2 + this->velocity < mH-3) this->velocity += gravity;
       else this->velocity = 0;
+    };
+
+};
+
+// Background class
+class Background {
+  public:
+    int sky, grass, soil;
+
+    void set_values (int x, int y, int z)
+      { sky=x; grass=y; soil=z; }
+
+    void draw () {
+      matrix.fillScreen(sky);
+      matrix.fillRect(0,mH-4,16,1,grass);
+      matrix.fillRect(0,mH-3,16,3,soil);
+    };
+
+    void update () {
+      this->draw();
     };
 
 };
 
 Player player1;
 Player pebble1;
+Background bg;
 
 void setup() {
   // Initialize serial and wait for port to open:
@@ -81,17 +102,17 @@ void setup() {
 
   matrix.begin();
   matrix.setBrightness(BRIGHTNESS);
+  bg.set_values(Cyan, DarkGreen, Maroon);
   player1.set_values(2,7,Orange);
-  pebble1.set_values(15,0,Black);
+  pebble1.set_values(15,10,Black);
   previousTimer = millis();
   jumpCount = 4;
   lifeBar = 8;
+  pebbleX = mW;
 }
 
 void Draw() {
-  matrix.fillScreen(Cyan);
-  matrix.fillRect(0,mH-3,16,3,Maroon);
-  matrix.fillRect(0,mH-4,16,1,DarkGreen);
+  bg.update();
   matrix.fillRect(4,0,lifeBar,1,GreenYellow);
   player1.update();
   pebble1.update();
@@ -103,15 +124,15 @@ void Input() {
     if (pebble1.pX == 6)
     {
       player1.velocity = -2;
-      jumpCount--;
+      // jumpCount--;
     }
   }
 }
 
 void Logic() {
-  if(pebbleX < 0) pebbleX = mW;
-  pebble1.set_values(pebbleX,mH-5,Black);
-  pebbleX--;
+  if(--pebbleX >= 0) {
+      pebble1.pX = pebbleX;
+    } else pebbleX = mW;
   if (player1.pX == pebble1.pX && player1.pY == pebble1.pY){
   lifeBar--;
   }
