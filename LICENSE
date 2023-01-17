@@ -1,38 +1,6 @@
-# Jump Man (Pixel Pebble)
-
-Jump Man is a Dino-Chrome look alike game written in c++ using Platform.io for a 16x16 WS2812b ARGB led matrix using an ESP-32 microcontroller.
-<br>
-<p align="center">
-  <img src="https://media.giphy.com/media/oouI92O4U0O1tsQ9Mb/giphy.gif" width="250" height="250">
-</p>
-
-## Progress:
-
-#### Game
-- [x] Game Logic (gravity, hit detection, life, pebble launch )
-- [x] Draw and Classes
-- [ ] Input system
-
-## Next-Steps
-
-- [ ] Bluetooth and/or Wireless implementation, for controlling, with Pixel Frame React Native App 
-
-
-
-## Usage
-
-Limited by development phase
-
-
-## Contributing
-
-For now, a standalone game. Suggestions will be happily received.
-
-# License
-
 MIT License
 
-Copyright (c) 2023 ivqueiroga
+Copyright (c) 2023 Ivan Araújo Queiroga Pinho
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -51,4 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
- 
