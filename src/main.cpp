@@ -28,6 +28,9 @@ Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(mW, mH, PIN,
   NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG,
   NEO_GRB            + NEO_KHZ800);
 
+BLECharacteristic *pCharacteristic;
+bool characteristicValue = true;
+
 // Pixel class
 class Pixel {
   private:
@@ -77,51 +80,6 @@ Pixel player1;
 Pixel pebble1;
 Background bg;
 
-// Helper functions
-
-BLEServer *pServer;
-BLEService *pService;
-BLECharacteristic *pCharacteristic;
-
-void setup() {
-  // Initialize serial and wait for port to open:
-  Serial.begin(115200);
-  // This delay gives the chance to wait for a Serial Monitor without blocking if none is found
-  delay(1500);
-
-  BLEDevice::init("PixelFrame");
-  pServer = BLEDevice::createServer();
-  pService = pServer->createService(SERVICE_UUID);
-  pCharacteristic = pService->createCharacteristic(
-    CHARACTERISTIC_UUID,
-    BLECharacteristic::PROPERTY_READ |
-    BLECharacteristic::PROPERTY_WRITE
-  );
-  pCharacteristic->setValue("1");
-  pService->start();
-
-  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
-  pAdvertising->addServiceUUID(SERVICE_UUID);
-  pAdvertising->setScanResponse(true);
-  pAdvertising->setMinPreferred(0x06); // functions that help with iPhone connections issues
-  pAdvertising->setMinPreferred(0x12);
-  BLEDevice::startAdvertising();
-
-  Serial.println("Characteristic defined! Now you can read it in the Client!");
-  
-
-  lastJumpState = 0;
-  matrix.begin();
-  matrix.setBrightness(BRIGHTNESS);
-  bg.set_values(Cyan, DarkGreen, Maroon);
-  player1.set_values(2,11,Orange);
-  pebble1.set_values(15,11,Black);
-  previousTimer = millis();
-  jumpCount = 4;
-  lifeBar = 8;
-  pebbleX = mW;
-}
-
 void Draw() {
   bg.update();
   matrix.fillRect(4,0,lifeBar,1,GreenYellow);
@@ -136,7 +94,6 @@ void Input() {
   if (lastJumpState != val) {
     lastJumpState = val;
     if (val == 0) {
-      Serial.println(val);
       player1.velocity = -2;
     };
   }
@@ -152,14 +109,86 @@ void Logic() {
   // if (lifeBar < 0) gameOver = true;
 }
 
+class MyServerCallbacks : public BLEServerCallbacks {
+  void onConnect(BLEServer* pServer) {
+    Serial.println("Device connected");
+  }
+
+  void onDisconnect(BLEServer* pServer) {
+    Serial.println("Device disconnected");
+    pServer->startAdvertising(); // Start advertising when a device disconnects
+  }
+};
+
+class MyCallbacks : public BLECharacteristicCallbacks {
+  void onWrite(BLECharacteristic *pCharacteristic) {
+    std::string value = pCharacteristic->getValue();
+
+    if (value.length() > 0) {
+      if (value[0] == '0') {
+        Input();
+        Serial.println("Jump");
+        characteristicValue = true;
+        pCharacteristic->setValue("1");
+      }
+    }
+  }
+};
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("Starting BLE work!");
+
+  BLEDevice::init("Pixel Frame");
+  BLEServer *pServer = BLEDevice::createServer();
+  pServer->setCallbacks(new MyServerCallbacks());
+
+  BLEService *pService = pServer->createService(SERVICE_UUID);
+  pCharacteristic = pService->createCharacteristic(
+                      CHARACTERISTIC_UUID,
+                      BLECharacteristic::PROPERTY_READ |
+                      BLECharacteristic::PROPERTY_WRITE
+                    );
+
+  pCharacteristic->setValue("1");
+  pCharacteristic->setCallbacks(new MyCallbacks());
+
+  pService->start();
+
+  BLEAdvertising *pAdvertising = pServer->getAdvertising();  // Get advertising handle
+  pAdvertising->addServiceUUID(SERVICE_UUID);
+  pAdvertising->setScanResponse(true);
+  pAdvertising->setMinPreferred(0x06);
+  pAdvertising->setMinPreferred(0x12);
+
+  pServer->startAdvertising();  // Start advertising
+
+  Serial.println("Characteristic defined! Now you can read it on your phone!");
+  lastJumpState = 0;
+  matrix.begin();
+  matrix.setBrightness(BRIGHTNESS);
+  bg.set_values(Cyan, DarkGreen, Maroon);
+  player1.set_values(2,11,Orange);
+  pebble1.set_values(15,11,Black);
+  previousTimer = millis();
+  jumpCount = 4;
+  lifeBar = 8;
+  pebbleX = mW;
+}
+
 void loop() {
   while (!gameOver) {
   unsigned long currentTimer = millis();
     if (currentTimer - previousTimer >= REFRESH)
-    {
-      Draw();
-      Input();
-      Logic();
+      {
+        Draw();
+        Input();
+        Logic();
+        if (characteristicValue) {
+          pCharacteristic->setValue("1");
+          pCharacteristic->notify();
+          characteristicValue = false;
+        }
       previousTimer = currentTimer;
     }
   }
